@@ -10,6 +10,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import TrackPackage from "./pages/TrackPackage";
 import ShipPackage from "./pages/ShipPackage";
+import ReceivePackage from "./pages/ReceivePackage";
 import ScanQR from "./pages/ScanQR";
 import Locations from "./pages/Locations";
 import NotFound from "./pages/NotFound";
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/track" element={<TrackPackage />} />
           <Route path="/ship" element={<ShipPackage />} />
+          <Route path="/receive" element={<ReceivePackage />} />
           <Route path="/scan" element={<ScanQR />} />
           <Route path="/locations" element={<Locations />} />
           <Route path="*" element={<NotFound />} />

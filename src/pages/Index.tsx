@@ -56,13 +56,20 @@ const Index = () => {
                 </form>
               </div>
               
-              <div className="mt-6">
+              <div className="mt-6 flex flex-wrap gap-3 justify-center">
                 <Button 
                   className="bg-flash-primary hover:bg-flash-primary/90"
                   onClick={() => navigate("/ship")}
                 >
                   <Truck size={18} className="mr-2" />
                   Ship a Package
+                </Button>
+                <Button 
+                  className="bg-flash-secondary hover:bg-flash-secondary/90"
+                  onClick={() => navigate("/receive")}
+                >
+                  <Package size={18} className="mr-2" />
+                  Receive a Package
                 </Button>
               </div>
             </div>
@@ -117,6 +124,25 @@ const Index = () => {
                 <CardContent className="pt-6">
                   <div className="flex flex-col items-center text-center">
                     <div className="w-16 h-16 bg-flash-light rounded-full flex items-center justify-center mb-4">
+                      <Package size={32} className="text-flash-primary" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2">Receive Packages</h3>
+                    <p className="text-gray-600 mb-4">Schedule incoming packages and prepare for their arrival.</p>
+                    <Button 
+                      variant="outline" 
+                      className="mt-2"
+                      onClick={() => navigate("/receive")}
+                    >
+                      Receive Now
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="hover:shadow-lg transition-all">
+                <CardContent className="pt-6">
+                  <div className="flex flex-col items-center text-center">
+                    <div className="w-16 h-16 bg-flash-light rounded-full flex items-center justify-center mb-4">
                       <QrCode size={32} className="text-flash-primary" />
                     </div>
                     <h3 className="text-xl font-semibold mb-2">QR Code Scanning</h3>
@@ -127,25 +153,6 @@ const Index = () => {
                       onClick={() => navigate("/scan")}
                     >
                       Scan QR
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="hover:shadow-lg transition-all">
-                <CardContent className="pt-6">
-                  <div className="flex flex-col items-center text-center">
-                    <div className="w-16 h-16 bg-flash-light rounded-full flex items-center justify-center mb-4">
-                      <MapPin size={32} className="text-flash-primary" />
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2">Location Services</h3>
-                    <p className="text-gray-600 mb-4">Find nearby drop-off points and track your package location.</p>
-                    <Button 
-                      variant="outline" 
-                      className="mt-2"
-                      onClick={() => navigate("/locations")}
-                    >
-                      Find Locations
                     </Button>
                   </div>
                 </CardContent>
