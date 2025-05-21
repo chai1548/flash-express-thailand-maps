@@ -1,204 +1,112 @@
 
-import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import React, { useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Search } from "lucide-react";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { toast } from "sonner";
-import { Search, Package as PackageIcon } from "lucide-react";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useToast } from "@/hooks/use-toast";
+
+import TrackingTimeline from "@/components/TrackingTimeline";
+import PackageCard from "@/components/PackageCard";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import TrackingTimeline from "@/components/TrackingTimeline";
-import LocationMap from "@/components/LocationMap";
-import { getPackageByTrackingNumber, Package } from "@/lib/tracking";
+import Chat from "@/components/Chat";
+
+import { getPackageByTrackingNumber } from "@/lib/tracking";
+
+const trackingSchema = z.object({
+  trackingNumber: z.string().min(4, {
+    message: "Tracking number must be at least 4 characters.",
+  }),
+});
 
 const TrackPackage = () => {
+  const [searchParams] = useSearchParams();
+  const initialTrackingId = searchParams.get("id") || "";
   const navigate = useNavigate();
-  const location = useLocation();
-  const [trackingNumber, setTrackingNumber] = useState("");
-  const [packageData, setPackageData] = useState<Package | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  
-  // Parse tracking number from query params
-  useEffect(() => {
-    const queryParams = new URLSearchParams(location.search);
-    const number = queryParams.get("number");
-    
-    if (number) {
-      setTrackingNumber(number);
-      handleTrack(number);
-    }
-  }, [location.search]);
-  
-  const handleTrack = async (number: string) => {
-    if (!number.trim()) {
-      toast.error("Please enter a tracking number");
-      return;
-    }
-    
-    setIsLoading(true);
-    
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      const packageInfo = getPackageByTrackingNumber(number.trim());
-      
-      if (packageInfo) {
-        setPackageData(packageInfo);
-      } else {
-        toast.error("Package not found");
-        setPackageData(null);
-      }
-    } catch (error) {
-      toast.error("An error occurred while tracking the package");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    handleTrack(trackingNumber);
-  };
+  const { toast } = useToast();
+  const [packageData, setPackageData] = useState(
+    initialTrackingId ? getPackageByTrackingNumber(initialTrackingId) : null
+  );
 
-  const getLastLocation = () => {
-    if (!packageData || packageData.history.length === 0) return null;
+  const form = useForm<z.infer<typeof trackingSchema>>({
+    resolver: zodResolver(trackingSchema),
+    defaultValues: {
+      trackingNumber: initialTrackingId,
+    },
+  });
+
+  const onSubmit = (data: z.infer<typeof trackingSchema>) => {
+    const result = getPackageByTrackingNumber(data.trackingNumber);
     
-    return packageData.history[0].location;
+    if (result) {
+      setPackageData(result);
+      navigate(`/track?id=${data.trackingNumber}`);
+    } else {
+      toast({
+        title: "Package Not Found",
+        description: "We couldn't find a package with that tracking number.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="min-h-screen flex flex-col">
       <Header />
-      
-      <main className="flex-grow bg-gray-50 py-8">
-        <div className="container mx-auto px-4">
-          <h1 className="text-2xl md:text-3xl font-bold mb-6">Track Your Package</h1>
-          
-          <Card className="mb-8">
-            <CardContent className="pt-6">
-              <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-3">
-                <Input
-                  placeholder="Enter tracking number..."
-                  value={trackingNumber}
-                  onChange={(e) => setTrackingNumber(e.target.value)}
-                  className="flex-grow"
-                />
-                <Button 
-                  type="submit" 
-                  className="bg-flash-primary hover:bg-flash-primary/90"
-                  disabled={isLoading}
-                >
-                  <Search size={18} className="mr-2" />
-                  {isLoading ? "Tracking..." : "Track Package"}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-          
-          {packageData ? (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <h2 className="text-xl font-semibold mb-1">
-                          Tracking Number: {packageData.trackingNumber}
-                        </h2>
-                        <p className="text-sm text-gray-500">
-                          Status: <span className="font-medium text-flash-primary">{packageData.status.replace('-', ' ')}</span>
-                        </p>
-                      </div>
-                      <div className="bg-flash-light p-2 rounded-full">
-                        <PackageIcon size={24} className="text-flash-primary" />
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                      <div>
-                        <h3 className="text-sm text-gray-500">From</h3>
-                        <p className="font-medium">{packageData.origin}</p>
-                      </div>
-                      <div>
-                        <h3 className="text-sm text-gray-500">To</h3>
-                        <p className="font-medium">{packageData.destination}</p>
-                      </div>
-                      <div>
-                        <h3 className="text-sm text-gray-500">Sender</h3>
-                        <p className="font-medium">{packageData.sender}</p>
-                      </div>
-                      <div>
-                        <h3 className="text-sm text-gray-500">Recipient</h3>
-                        <p className="font-medium">{packageData.recipient}</p>
-                      </div>
-                      <div>
-                        <h3 className="text-sm text-gray-500">Estimated Delivery</h3>
-                        <p className="font-medium">
-                          {new Date(packageData.estimatedDelivery).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })}
-                        </p>
-                      </div>
-                      <div>
-                        <h3 className="text-sm text-gray-500">Last Updated</h3>
-                        <p className="font-medium">
-                          {new Date(packageData.lastUpdated).toLocaleString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <TrackingTimeline packageData={packageData} />
-                  </CardContent>
-                </Card>
-              </div>
-              
-              <div>
-                <Card>
-                  <CardContent className="pt-6">
-                    <h3 className="text-lg font-semibold mb-4">Current Location</h3>
-                    <LocationMap location={getLastLocation() || packageData.origin} />
-                    
-                    <div className="mt-6">
-                      <h3 className="text-lg font-semibold mb-2">Need Help?</h3>
-                      <p className="text-sm text-gray-600 mb-4">
-                        Contact our customer service for assistance with your package.
-                      </p>
-                      <Button className="w-full bg-flash-secondary hover:bg-flash-secondary/90">
-                        Contact Support
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+      <main className="flex-1 container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold mb-6 text-center">Track Your Package</h1>
+        
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="mb-8 max-w-md mx-auto">
+            <div className="flex space-x-2">
+              <FormField
+                control={form.control}
+                name="trackingNumber"
+                render={({ field }) => (
+                  <FormItem className="flex-1">
+                    <FormControl>
+                      <Input placeholder="Enter tracking number..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit">
+                <Search className="mr-2 h-4 w-4" />
+                Track
+              </Button>
             </div>
-          ) : (
-            <div className="text-center py-12">
-              <div className="text-gray-400 mb-4">
-                <PackageIcon size={64} className="mx-auto" />
-              </div>
-              <h2 className="text-xl font-semibold mb-2">No Package Information</h2>
-              <p className="text-gray-500 mb-4">
-                Enter a tracking number to see delivery status and details.
-              </p>
-              <p className="text-sm text-gray-400">
-                Try sample tracking number: FE123456789TH
-              </p>
-            </div>
-          )}
-        </div>
+          </form>
+        </Form>
+
+        {packageData ? (
+          <div className="max-w-3xl mx-auto space-y-6">
+            <PackageCard packageData={packageData} />
+            <Card>
+              <CardContent className="pt-6">
+                <TrackingTimeline packageData={packageData} />
+              </CardContent>
+            </Card>
+          </div>
+        ) : (
+          <div className="text-center mt-8">
+            <p className="text-gray-500">
+              Enter your tracking number above to see the status and details of your package.
+            </p>
+          </div>
+        )}
       </main>
-      
       <Footer />
+      
+      {/* Chat component */}
+      <Chat packageId={packageData?.trackingNumber} />
     </div>
   );
 };
