@@ -14,6 +14,8 @@ import ReceivePackage from "./pages/ReceivePackage";
 import ScanQR from "./pages/ScanQR";
 import Locations from "./pages/Locations";
 import NotFound from "./pages/NotFound";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminRoute from "./components/AdminRoute";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +35,7 @@ const App = () => (
           <Route path="/receive" element={<ReceivePackage />} />
           <Route path="/scan" element={<ScanQR />} />
           <Route path="/locations" element={<Locations />} />
+          <Route path="/admin" element={<AdminRoute element={<AdminDashboard />} />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

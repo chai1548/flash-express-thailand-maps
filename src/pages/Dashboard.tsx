@@ -2,45 +2,35 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Package as PackageIcon, MapPin, Settings, LogOut, QrCode } from "lucide-react";
+import { Package, Truck, Search, User, QrCode } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { getCurrentUser, isAdmin, logout } from "@/lib/auth";
+import { getUserPackages, Package as PackageType } from "@/lib/tracking";
 import PackageCard from "@/components/PackageCard";
-import LocationMap from "@/components/LocationMap";
-import { getCurrentUser, isLoggedIn, logout } from "@/lib/auth";
-import { getUserPackages, Package } from "@/lib/tracking";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [packages, setPackages] = useState<Package[]>([]);
+  const [user, setUser] = useState(getCurrentUser());
+  const [packages, setPackages] = useState<PackageType[]>([]);
+  const isUserAdmin = isAdmin();
   
   useEffect(() => {
-    // Check if user is logged in
-    if (!isLoggedIn()) {
-      toast.error("Please login to access the dashboard");
+    if (!user) {
       navigate("/login");
       return;
     }
     
-    // Get user packages
-    const currentUser = getCurrentUser();
-    if (currentUser) {
-      const userPackages = getUserPackages(currentUser.id);
-      setPackages(userPackages);
-    }
-  }, [navigate]);
+    // Load user's packages
+    setPackages(getUserPackages(user.id));
+  }, [user, navigate]);
   
   const handleLogout = () => {
     logout();
-    toast.success("Logged out successfully");
+    toast.success("You have been logged out");
     navigate("/");
-  };
-  
-  const handlePackageClick = (trackingNumber: string) => {
-    navigate(`/track?number=${encodeURIComponent(trackingNumber)}`);
   };
 
   return (
@@ -49,176 +39,123 @@ const Dashboard = () => {
       
       <main className="flex-grow bg-gray-50 py-8">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+          <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl md:text-3xl font-bold">Dashboard</h1>
-            
-            <div className="flex mt-4 md:mt-0 space-x-2">
+            <div className="space-x-2">
+              {isUserAdmin && (
+                <Button 
+                  variant="outline" 
+                  className="border-flash-primary text-flash-primary"
+                  onClick={() => navigate("/admin")}
+                >
+                  Admin Panel
+                </Button>
+              )}
               <Button 
-                variant="outline"
-                className="text-flash-primary border-flash-primary"
-                onClick={() => navigate("/scan")}
-              >
-                <QrCode size={18} className="mr-2" />
-                Scan QR
-              </Button>
-              <Button 
-                variant="outline"
-                className="text-red-500 border-red-500 hover:bg-red-50"
+                variant="outline" 
                 onClick={handleLogout}
               >
-                <LogOut size={18} className="mr-2" />
-                Logout
+                Log Out
               </Button>
             </div>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <div className="lg:col-span-1">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Profile</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-col items-center">
-                    <div className="w-24 h-24 rounded-full bg-flash-primary text-white flex items-center justify-center text-2xl font-bold mb-4">
-                      {getCurrentUser()?.name.charAt(0).toUpperCase() || "U"}
-                    </div>
-                    <h2 className="text-xl font-semibold">{getCurrentUser()?.name || "User"}</h2>
-                    <p className="text-gray-500 mb-4">{getCurrentUser()?.email || "user@example.com"}</p>
-                    
-                    <Button 
-                      variant="outline" 
-                      className="w-full mt-2"
-                      onClick={() => toast.info("Profile settings coming soon")}
-                    >
-                      <Settings size={16} className="mr-2" />
-                      Account Settings
-                    </Button>
+          <Card className="mb-8">
+            <CardContent className="pt-6">
+              <div className="flex flex-col md:flex-row justify-between">
+                <div className="mb-4 md:mb-0">
+                  <h2 className="text-xl font-semibold mb-1">Welcome, {user?.name}</h2>
+                  <p className="text-gray-600">{user?.email}</p>
+                  <p className="text-sm text-gray-500 mt-1">Role: {user?.role}</p>
+                </div>
+                <Button 
+                  className="bg-flash-primary hover:bg-flash-primary/90"
+                  onClick={() => toast.info("Profile settings coming soon!")}
+                >
+                  <User size={18} className="mr-2" />
+                  Manage Profile
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate("/track")}>
+              <CardContent className="pt-6">
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-12 h-12 bg-flash-light rounded-full flex items-center justify-center mb-3">
+                    <Search size={24} className="text-flash-primary" />
                   </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="mt-6">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Quick Actions</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start"
-                      onClick={() => navigate("/track")}
-                    >
-                      <PackageIcon size={16} className="mr-2" />
-                      Track a Package
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start"
-                      onClick={() => navigate("/scan")}
-                    >
-                      <QrCode size={16} className="mr-2" />
-                      Scan QR Code
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start"
-                      onClick={() => navigate("/locations")}
-                    >
-                      <MapPin size={16} className="mr-2" />
-                      Find Drop-off Points
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                  <h3 className="font-semibold mb-2">Track Package</h3>
+                  <p className="text-sm text-gray-500">Track your shipments</p>
+                </div>
+              </CardContent>
+            </Card>
             
-            <div className="lg:col-span-3">
-              <Tabs defaultValue="packages">
-                <TabsList className="mb-4">
-                  <TabsTrigger value="packages">My Packages</TabsTrigger>
-                  <TabsTrigger value="map">Nearby Locations</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="packages">
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-lg">Your Packages</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {packages.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {packages.map((pkg) => (
-                            <PackageCard 
-                              key={pkg.id} 
-                              packageData={pkg} 
-                              onClick={() => handlePackageClick(pkg.trackingNumber)}
-                            />
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-center py-8">
-                          <PackageIcon size={48} className="mx-auto text-gray-300 mb-4" />
-                          <h3 className="text-lg font-medium mb-2">No Packages Found</h3>
-                          <p className="text-gray-500 mb-4">You don't have any packages to track yet.</p>
-                          <Button 
-                            onClick={() => navigate("/track")}
-                            className="bg-flash-primary hover:bg-flash-primary/90"
-                          >
-                            Track a Package
-                          </Button>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-                
-                <TabsContent value="map">
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-lg">Nearby Drop-off Points</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="rounded-lg overflow-hidden mb-4">
-                        <LocationMap height="400px" />
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Card>
-                          <CardContent className="p-4">
-                            <h3 className="font-medium mb-1">Bangkok Central Office</h3>
-                            <p className="text-sm text-gray-500 mb-2">123 Sukhumvit Rd, Bangkok</p>
-                            <div className="text-xs text-gray-500">Open: 8 AM - 8 PM</div>
-                          </CardContent>
-                        </Card>
-                        <Card>
-                          <CardContent className="p-4">
-                            <h3 className="font-medium mb-1">Siam Collection Point</h3>
-                            <p className="text-sm text-gray-500 mb-2">Siam Square, Bangkok</p>
-                            <div className="text-xs text-gray-500">Open: 10 AM - 9 PM</div>
-                          </CardContent>
-                        </Card>
-                        <Card>
-                          <CardContent className="p-4">
-                            <h3 className="font-medium mb-1">Asok Branch</h3>
-                            <p className="text-sm text-gray-500 mb-2">Asok Junction, Bangkok</p>
-                            <div className="text-xs text-gray-500">Open: 9 AM - 7 PM</div>
-                          </CardContent>
-                        </Card>
-                        <Card>
-                          <CardContent className="p-4">
-                            <h3 className="font-medium mb-1">Victory Monument</h3>
-                            <p className="text-sm text-gray-500 mb-2">Victory Monument, Bangkok</p>
-                            <div className="text-xs text-gray-500">Open: 8 AM - 6 PM</div>
-                          </CardContent>
-                        </Card>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-              </Tabs>
-            </div>
+            <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate("/ship")}>
+              <CardContent className="pt-6">
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-12 h-12 bg-flash-light rounded-full flex items-center justify-center mb-3">
+                    <Truck size={24} className="text-flash-primary" />
+                  </div>
+                  <h3 className="font-semibold mb-2">Ship Package</h3>
+                  <p className="text-sm text-gray-500">Create a new shipment</p>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate("/receive")}>
+              <CardContent className="pt-6">
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-12 h-12 bg-flash-light rounded-full flex items-center justify-center mb-3">
+                    <Package size={24} className="text-flash-primary" />
+                  </div>
+                  <h3 className="font-semibold mb-2">Receive Package</h3>
+                  <p className="text-sm text-gray-500">Manage incoming packages</p>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate("/scan")}>
+              <CardContent className="pt-6">
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-12 h-12 bg-flash-light rounded-full flex items-center justify-center mb-3">
+                    <QrCode size={24} className="text-flash-primary" />
+                  </div>
+                  <h3 className="font-semibold mb-2">Scan QR Code</h3>
+                  <p className="text-sm text-gray-500">Scan package QR codes</p>
+                </div>
+              </CardContent>
+            </Card>
           </div>
+          
+          <h2 className="text-xl font-semibold mb-4">Your Recent Packages</h2>
+          {packages.length > 0 ? (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {packages.map(pkg => (
+                <PackageCard 
+                  key={pkg.id}
+                  packageData={pkg}
+                  onClick={() => navigate(`/track?number=${pkg.trackingNumber}`)}
+                />
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <Package size={48} className="mx-auto text-gray-400 mb-3" />
+                <p className="text-lg font-medium mb-2">No packages yet</p>
+                <p className="text-gray-500 mb-4">You don't have any recent packages</p>
+                <Button 
+                  className="bg-flash-secondary hover:bg-flash-secondary/90"
+                  onClick={() => navigate("/ship")}
+                >
+                  <Truck size={18} className="mr-2" />
+                  Ship a Package
+                </Button>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </main>
       

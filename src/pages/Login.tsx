@@ -101,9 +101,9 @@ const Login = () => {
                   
                   {/* Demo account info */}
                   <div className="text-center text-sm text-gray-500 mt-2">
-                    <p>Demo account:</p>
-                    <p>Email: demo@example.com</p>
-                    <p>Password: password</p>
+                    <p>Demo accounts:</p>
+                    <p className="font-medium">Admin: admin@flashexpress.com (any password)</p>
+                    <p>Regular user: demo@example.com (any password)</p>
                   </div>
                 </div>
               </form>
