@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, Package, MapPin, QrCode } from "lucide-react";
+import { Search, Package, MapPin, QrCode, Truck } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { initializePackages } from "@/lib/tracking";
@@ -55,6 +55,16 @@ const Index = () => {
                   </Button>
                 </form>
               </div>
+              
+              <div className="mt-6">
+                <Button 
+                  className="bg-flash-primary hover:bg-flash-primary/90"
+                  onClick={() => navigate("/ship")}
+                >
+                  <Truck size={18} className="mr-2" />
+                  Ship a Package
+                </Button>
+              </div>
             </div>
           </div>
         </section>
@@ -64,7 +74,7 @@ const Index = () => {
           <div className="container mx-auto px-4">
             <h2 className="text-2xl md:text-3xl font-bold text-center mb-12">Our Services</h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               <Card className="hover:shadow-lg transition-all">
                 <CardContent className="pt-6">
                   <div className="flex flex-col items-center text-center">
@@ -79,6 +89,25 @@ const Index = () => {
                       onClick={() => navigate("/track")}
                     >
                       Track Now
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="hover:shadow-lg transition-all">
+                <CardContent className="pt-6">
+                  <div className="flex flex-col items-center text-center">
+                    <div className="w-16 h-16 bg-flash-light rounded-full flex items-center justify-center mb-4">
+                      <Truck size={32} className="text-flash-primary" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2">Ship Packages</h3>
+                    <p className="text-gray-600 mb-4">Create new shipments and send packages across Thailand.</p>
+                    <Button 
+                      variant="outline" 
+                      className="mt-2"
+                      onClick={() => navigate("/ship")}
+                    >
+                      Ship Now
                     </Button>
                   </div>
                 </CardContent>
