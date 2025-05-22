@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Upload } from "lucide-react";
+import { Upload, FileCheck, Filter } from "lucide-react";
 
 // This component would typically connect to a backend for actual file uploads
 // Currently implementing with localStorage for demo purposes
@@ -26,6 +26,12 @@ const ImageAdUploader = () => {
       return;
     }
     
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image size should be less than 5MB");
+      return;
+    }
+    
     // Create preview URL
     const reader = new FileReader();
     reader.onload = () => {
@@ -38,8 +44,19 @@ const ImageAdUploader = () => {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    if (!title || !description || !imagePreview) {
-      toast.error("Please fill in all fields and select an image");
+    // Validate inputs
+    if (!title.trim()) {
+      toast.error("Please enter a title");
+      return;
+    }
+    
+    if (!description.trim()) {
+      toast.error("Please enter a description");
+      return;
+    }
+    
+    if (!imagePreview) {
+      toast.error("Please select an image");
       return;
     }
     
@@ -49,13 +66,17 @@ const ImageAdUploader = () => {
       // In a real application, this would upload to a server
       // For demo purposes, we'll save to localStorage
       const existingAds = JSON.parse(localStorage.getItem("adImages") || "[]");
+      
+      // Create new ad with validation
       const newAd = {
         id: Date.now().toString(),
-        title,
-        description,
-        imageUrl: imagePreview
+        title: title.trim(),
+        description: description.trim(),
+        imageUrl: imagePreview,
+        createdAt: new Date().toISOString()
       };
       
+      // Save to localStorage
       localStorage.setItem("adImages", JSON.stringify([...existingAds, newAd]));
       
       toast.success("Advertisement uploaded successfully!");
@@ -78,6 +99,17 @@ const ImageAdUploader = () => {
     }
   };
   
+  // Delete all ads (for testing/admin purposes)
+  const handleClearAllAds = () => {
+    if (window.confirm("Are you sure you want to delete all advertisements?")) {
+      localStorage.removeItem("adImages");
+      toast.success("All advertisements deleted");
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    }
+  };
+  
   return (
     <Card className="shadow-md">
       <CardHeader>
@@ -93,6 +125,7 @@ const ImageAdUploader = () => {
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter title"
               required
+              maxLength={50}
             />
           </div>
           
@@ -104,6 +137,7 @@ const ImageAdUploader = () => {
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Enter description"
               required
+              maxLength={100}
             />
           </div>
           
@@ -117,6 +151,7 @@ const ImageAdUploader = () => {
               required={!imagePreview}
               className="cursor-pointer"
             />
+            <p className="text-xs text-gray-500">Maximum file size: 5MB. Supported formats: JPG, PNG, GIF</p>
           </div>
           
           {imagePreview && (
@@ -129,20 +164,31 @@ const ImageAdUploader = () => {
             </div>
           )}
           
-          <Button 
-            type="submit" 
-            className="w-full bg-flash-primary hover:bg-flash-primary/90"
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              "Uploading..."
-            ) : (
-              <>
-                <Upload className="mr-2 h-4 w-4" />
-                Upload Advertisement
-              </>
-            )}
-          </Button>
+          <div className="flex gap-4">
+            <Button 
+              type="submit" 
+              className="flex-1 bg-flash-primary hover:bg-flash-primary/90"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                "Uploading..."
+              ) : (
+                <>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Upload Advertisement
+                </>
+              )}
+            </Button>
+            
+            <Button 
+              type="button"
+              variant="destructive"
+              onClick={handleClearAllAds}
+              className="flex-shrink-0"
+            >
+              Clear All Ads
+            </Button>
+          </div>
         </form>
       </CardContent>
     </Card>

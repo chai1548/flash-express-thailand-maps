@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, Package, QrCode, Truck, FileText } from "lucide-react";
+import { Search, Package, QrCode, Truck, FileText, Filter } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { initializePackages } from "@/lib/tracking";
@@ -16,11 +16,13 @@ interface Advertisement {
   title: string;
   description: string;
   imageUrl: string;
+  createdAt?: string;
 }
 
 const Index = () => {
   const navigate = useNavigate();
   const [advertisements, setAdvertisements] = useState<Advertisement[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Initialize sample package data when app launches
   useEffect(() => {
@@ -29,17 +31,36 @@ const Index = () => {
 
   // Load advertisements from localStorage or use default ones
   useEffect(() => {
-    const storedAds = localStorage.getItem("adImages");
-    if (storedAds) {
-      try {
+    setIsLoading(true);
+    try {
+      const storedAds = localStorage.getItem("adImages");
+      if (storedAds) {
         const parsedAds = JSON.parse(storedAds);
         if (Array.isArray(parsedAds) && parsedAds.length > 0) {
-          setAdvertisements(parsedAds);
-          return;
+          // Sort ads by creation date (newest first)
+          const sortedAds = parsedAds.sort((a, b) => {
+            const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            return dateB - dateA;
+          });
+          
+          // Filter out ads with missing data
+          const validAds = sortedAds.filter(ad => 
+            ad.title && ad.description && ad.imageUrl && 
+            typeof ad.title === 'string' && 
+            typeof ad.description === 'string' && 
+            typeof ad.imageUrl === 'string'
+          );
+          
+          if (validAds.length > 0) {
+            setAdvertisements(validAds);
+            setIsLoading(false);
+            return;
+          }
         }
-      } catch (error) {
-        console.error("Failed to parse stored ads:", error);
       }
+    } catch (error) {
+      console.error("Failed to parse stored ads:", error);
     }
     
     // Default advertisement data if none found in storage
@@ -76,6 +97,7 @@ const Index = () => {
       }
     ];
     setAdvertisements(defaultAds);
+    setIsLoading(false);
   }, []);
 
   return (
@@ -145,27 +167,37 @@ const Index = () => {
             <div className="max-w-4xl mx-auto">
               <Card className="shadow-lg overflow-hidden">
                 <CardContent className="p-0">
-                  <Carousel className="w-full">
-                    <CarouselContent>
-                      {advertisements.map((ad) => (
-                        <CarouselItem key={ad.id}>
-                          <div className="p-1 relative">
-                            <img 
-                              src={ad.imageUrl} 
-                              alt={ad.title}
-                              className="w-full aspect-video object-cover rounded-md"
-                            />
-                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-white rounded-b-md">
-                              <h3 className="font-bold">{ad.title}</h3>
-                              <p className="text-sm">{ad.description}</p>
+                  {isLoading ? (
+                    <div className="flex items-center justify-center h-64">
+                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-flash-primary"></div>
+                    </div>
+                  ) : (
+                    <Carousel className="w-full">
+                      <CarouselContent>
+                        {advertisements.map((ad) => (
+                          <CarouselItem key={ad.id}>
+                            <div className="p-1 relative">
+                              <img 
+                                src={ad.imageUrl} 
+                                alt={ad.title}
+                                className="w-full aspect-video object-cover rounded-md"
+                                onError={(e) => {
+                                  // If image fails to load, use a fallback
+                                  (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=800&h=500&fit=crop";
+                                }}
+                              />
+                              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-white rounded-b-md">
+                                <h3 className="font-bold">{ad.title}</h3>
+                                <p className="text-sm">{ad.description}</p>
+                              </div>
                             </div>
-                          </div>
-                        </CarouselItem>
-                      ))}
-                    </CarouselContent>
-                    <CarouselPrevious className="left-2" />
-                    <CarouselNext className="right-2" />
-                  </Carousel>
+                          </CarouselItem>
+                        ))}
+                      </CarouselContent>
+                      <CarouselPrevious className="left-2" />
+                      <CarouselNext className="right-2" />
+                    </Carousel>
+                  )}
                 </CardContent>
               </Card>
             </div>

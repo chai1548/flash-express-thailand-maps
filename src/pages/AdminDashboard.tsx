@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,10 +8,21 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { getCurrentUser, logout } from "@/lib/auth";
 import ImageAdUploader from "@/components/ImageAdUploader";
+import { FileCheck, Filter } from "lucide-react";
+
+// Define the advertisement type
+interface Advertisement {
+  id: string;
+  title: string;
+  description: string;
+  imageUrl: string;
+  createdAt?: string;
+}
 
 const AdminDashboard = () => {
   // Get current user information
   const user = getCurrentUser();
+  const [advertisements, setAdvertisements] = useState<Advertisement[]>([]);
   
   useEffect(() => {
     if (user?.role !== "admin") {
@@ -20,7 +31,49 @@ const AdminDashboard = () => {
     
     // Welcome message
     toast.success(`Welcome, ${user?.name || "Admin"}!`);
+
+    // Load advertisements
+    loadAdvertisements();
   }, []);
+
+  const loadAdvertisements = () => {
+    try {
+      const storedAds = localStorage.getItem("adImages");
+      if (storedAds) {
+        const parsedAds = JSON.parse(storedAds);
+        if (Array.isArray(parsedAds)) {
+          // Sort ads by creation date (newest first)
+          const sortedAds = parsedAds.sort((a, b) => {
+            const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            return dateB - dateA;
+          });
+          setAdvertisements(sortedAds);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load advertisements:", error);
+      toast.error("Failed to load advertisements");
+    }
+  };
+
+  const handleDeleteAd = (id: string) => {
+    try {
+      const storedAds = localStorage.getItem("adImages");
+      if (storedAds) {
+        const parsedAds = JSON.parse(storedAds);
+        if (Array.isArray(parsedAds)) {
+          const filteredAds = parsedAds.filter(ad => ad.id !== id);
+          localStorage.setItem("adImages", JSON.stringify(filteredAds));
+          setAdvertisements(filteredAds);
+          toast.success("Advertisement deleted successfully");
+        }
+      }
+    } catch (error) {
+      console.error("Failed to delete advertisement:", error);
+      toast.error("Failed to delete advertisement");
+    }
+  };
   
   return (
     <div className="flex flex-col min-h-screen">
@@ -135,12 +188,66 @@ const AdminDashboard = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {/* This would typically fetch from storage/backend */}
-                    <p>
-                      To view and manage your existing advertisements, go to the home page to see how they appear in the carousel.
-                      Newly uploaded advertisements will appear in the carousel after refresh.
-                    </p>
+                  {advertisements.length > 0 ? (
+                    <div className="space-y-4">
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
+                              <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                              <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                              <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Added</th>
+                              <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {advertisements.map((ad) => (
+                              <tr key={ad.id}>
+                                <td className="px-4 py-4 whitespace-nowrap">
+                                  <img 
+                                    src={ad.imageUrl} 
+                                    alt={ad.title}
+                                    className="h-16 w-24 object-cover rounded"
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=800&h=500&fit=crop";
+                                    }}
+                                  />
+                                </td>
+                                <td className="px-4 py-4 whitespace-nowrap">
+                                  <div className="text-sm font-medium text-gray-900">{ad.title}</div>
+                                </td>
+                                <td className="px-4 py-4">
+                                  <div className="text-sm text-gray-500 max-w-xs truncate">{ad.description}</div>
+                                </td>
+                                <td className="px-4 py-4 whitespace-nowrap">
+                                  <div className="text-sm text-gray-500">
+                                    {ad.createdAt ? new Date(ad.createdAt).toLocaleDateString() : "N/A"}
+                                  </div>
+                                </td>
+                                <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                  <Button 
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={() => handleDeleteAd(ad.id)}
+                                  >
+                                    Delete
+                                  </Button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <FileCheck className="mx-auto h-12 w-12 text-gray-400" />
+                      <h3 className="mt-2 text-sm font-medium text-gray-900">No advertisements</h3>
+                      <p className="mt-1 text-sm text-gray-500">Get started by uploading your first advertisement</p>
+                    </div>
+                  )}
+                  <div className="mt-4">
                     <Button 
                       variant="outline"
                       onClick={() => window.open("/", "_blank")}
