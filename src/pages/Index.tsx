@@ -4,10 +4,11 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, Package, MapPin, QrCode, Truck } from "lucide-react";
+import { Search, Package, MapPin, QrCode, Truck, LayoutTemplate, FileText } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { initializePackages } from "@/lib/tracking";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -16,6 +17,15 @@ const Index = () => {
   useEffect(() => {
     initializePackages();
   }, []);
+
+  // Advertisement data
+  const adImages = [
+    "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=800&h=500&fit=crop",
+    "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=800&h=500&fit=crop",
+    "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&h=500&fit=crop",
+    "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&h=500&fit=crop",
+    "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=500&fit=crop"
+  ];
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -72,6 +82,62 @@ const Index = () => {
                   Receive a Package
                 </Button>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Advertisement Carousel Section */}
+        <section className="py-12 bg-gray-50">
+          <div className="container mx-auto px-4">
+            <h2 className="text-2xl md:text-3xl font-bold text-center mb-8">Flash Express Services</h2>
+            
+            <div className="max-w-4xl mx-auto">
+              <Card className="shadow-lg overflow-hidden">
+                <CardContent className="p-0">
+                  <Carousel className="w-full">
+                    <CarouselContent>
+                      {adImages.map((src, index) => (
+                        <CarouselItem key={index}>
+                          <div className="p-1 relative">
+                            <img 
+                              src={src} 
+                              alt={`Flash Express Service ${index + 1}`}
+                              className="w-full aspect-video object-cover rounded-md"
+                            />
+                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-white rounded-b-md">
+                              <h3 className="font-bold">Flash Express Service {index + 1}</h3>
+                              <p className="text-sm">Fast and reliable delivery solutions for all your shipping needs</p>
+                            </div>
+                          </div>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="left-2" />
+                    <CarouselNext className="right-2" />
+                  </Carousel>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Service Announcements */}
+            <div className="mt-8 max-w-4xl mx-auto">
+              <Card className="shadow-lg">
+                <CardContent className="space-y-3 p-6">
+                  <h3 className="text-lg font-bold flex items-center mb-3">
+                    <FileText className="h-5 w-5 mr-2" />
+                    Flash Express Announcements
+                  </h3>
+                  <p className="text-sm">
+                    <span className="font-semibold">New Feature:</span> Enhanced package tracking system with real-time updates now available
+                  </p>
+                  <p className="text-sm">
+                    <span className="font-semibold">Special Promotion:</span> 20% discount on all international shipments until end of month
+                  </p>
+                  <p className="text-sm">
+                    <span className="font-semibold">Service Update:</span> Now covering all provinces in Thailand with next-day delivery options
+                  </p>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </section>

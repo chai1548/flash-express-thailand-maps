@@ -10,8 +10,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { login } from "@/lib/auth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Image, Text, FileText, FileImage, LayoutTemplate } from "lucide-react";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { FileText } from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -48,15 +47,6 @@ const Login = () => {
       setIsLoading(false);
     }
   };
-
-  // Advertisement data for admin section
-  const adImages = [
-    "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=800&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=800&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=500&fit=crop"
-  ];
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -209,66 +199,32 @@ const Login = () => {
                   </CardContent>
                 </Card>
 
-                {/* Admin Advertisements Section */}
-                <div className="space-y-6">
-                  <Card className="shadow-lg overflow-hidden">
-                    <CardHeader className="space-y-1 pb-2">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-lg font-bold flex items-center">
-                          <LayoutTemplate className="h-5 w-5 mr-2" />
-                          Admin Dashboard Features
-                        </CardTitle>
-                        <Button variant="ghost" size="sm" className="text-flash-primary">
-                          <Text className="h-4 w-4 mr-2" />
-                          Learn More
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                      <Carousel className="w-full">
-                        <CarouselContent>
-                          {adImages.map((src, index) => (
-                            <CarouselItem key={index}>
-                              <div className="p-1 relative">
-                                <img 
-                                  src={src} 
-                                  alt={`Admin feature ${index + 1}`}
-                                  className="w-full aspect-video object-cover rounded-md"
-                                />
-                                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-white rounded-b-md">
-                                  <h3 className="font-bold">Flash Express Admin Tool {index + 1}</h3>
-                                  <p className="text-sm">Powerful management features for package tracking and delivery optimization</p>
-                                </div>
-                              </div>
-                            </CarouselItem>
-                          ))}
-                        </CarouselContent>
-                        <CarouselPrevious />
-                        <CarouselNext />
-                      </Carousel>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="shadow-lg">
-                    <CardHeader className="space-y-1 pb-3">
-                      <CardTitle className="text-lg font-bold flex items-center">
-                        <FileText className="h-5 w-5 mr-2" />
-                        Admin Announcements
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <p className="text-sm">
-                        <span className="font-semibold">New Feature:</span> Enhanced package tracking system with real-time updates now available
-                      </p>
-                      <p className="text-sm">
-                        <span className="font-semibold">Maintenance:</span> System update scheduled for May 25th, 22:00-23:00 ICT
-                      </p>
-                      <p className="text-sm">
-                        <span className="font-semibold">Statistics:</span> 98.7% on-time delivery rate achieved this month
-                      </p>
-                    </CardContent>
-                  </Card>
-                </div>
+                {/* Admin Information Section */}
+                <Card className="shadow-lg">
+                  <CardHeader className="space-y-1 pb-3">
+                    <CardTitle className="text-lg font-bold flex items-center">
+                      <FileText className="h-5 w-5 mr-2" />
+                      Admin Dashboard Features
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p className="text-sm">
+                      <span className="font-semibold">Package Management:</span> View, track, and update package status in real-time
+                    </p>
+                    <p className="text-sm">
+                      <span className="font-semibold">User Management:</span> Manage customer accounts and staff permissions
+                    </p>
+                    <p className="text-sm">
+                      <span className="font-semibold">Analytics Dashboard:</span> Access detailed reports and performance analytics
+                    </p>
+                    <p className="text-sm">
+                      <span className="font-semibold">Content Management:</span> Update website content, announcements, and promotions
+                    </p>
+                    <p className="text-sm">
+                      <span className="font-semibold">System Settings:</span> Configure application settings and integrations
+                    </p>
+                  </CardContent>
+                </Card>
               </div>
             </TabsContent>
           </Tabs>
