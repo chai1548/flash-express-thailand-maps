@@ -46,6 +46,39 @@ export const generateAutoResponse = (message: string, packageId?: string): strin
   if (lowerCaseMessage.includes('hello') || lowerCaseMessage.includes('hi') || lowerCaseMessage.includes('hey')) {
     return "Hello! How can I assist you with your package today?";
   }
+
+  // Additional automated responses for various scenarios
+  if (lowerCaseMessage.includes('cost') || lowerCaseMessage.includes('price') || lowerCaseMessage.includes('fee')) {
+    return "Our shipping fees depend on package weight, dimensions, and destination. You can get an instant quote on our shipping page or contact customer service for a detailed breakdown.";
+  }
+  
+  if (lowerCaseMessage.includes('refund')) {
+    return "Refund requests are processed within 5-7 business days. Please provide your tracking number and reason for the refund to our customer support team.";
+  }
+  
+  if (lowerCaseMessage.includes('cancel') || lowerCaseMessage.includes('cancellation')) {
+    return "To cancel a shipment, please contact our customer support immediately with your tracking number. Cancellations may only be possible if the package hasn't been processed yet.";
+  }
+  
+  if (lowerCaseMessage.includes('insurance') || lowerCaseMessage.includes('insure')) {
+    return "All packages include basic insurance coverage up to $100. Additional insurance can be purchased during checkout for valuable items.";
+  }
+  
+  if (lowerCaseMessage.includes('signature') || lowerCaseMessage.includes('sign for')) {
+    return "Signature confirmation is required for packages valued over $500. You can add this service to any shipment for an additional fee.";
+  }
+  
+  if (lowerCaseMessage.includes('international') || lowerCaseMessage.includes('customs')) {
+    return "International shipments require customs forms and may incur additional fees or taxes determined by the destination country.";
+  }
+  
+  if (lowerCaseMessage.includes('track') && lowerCaseMessage.includes('number')) {
+    return `You can track your package using the tracking number ${packageId || 'provided in your confirmation email'} on our tracking page.`;
+  }
+  
+  if (lowerCaseMessage.includes('thank')) {
+    return "You're welcome! Is there anything else I can help you with regarding your shipment?";
+  }
   
   // Default response
   return "Thank you for your message. For package-specific questions, please include your tracking number. For immediate assistance, please contact our customer support at 1-800-FLASH-EX.";
@@ -84,6 +117,20 @@ export const getChatSession = (sessionId?: string, packageId?: string): ChatSess
   return createChatSession(packageId);
 };
 
+// Get all chat sessions (for admin purposes)
+export const getAllChatSessions = (): ChatSession[] => {
+  return Object.values(chatSessions);
+};
+
+// Delete a chat session (for admin purposes)
+export const deleteChatSession = (sessionId: string): boolean => {
+  if (chatSessions[sessionId]) {
+    delete chatSessions[sessionId];
+    return true;
+  }
+  return false;
+};
+
 // Add a user message and generate an automated response
 export const addMessageAndGetResponse = (
   sessionId: string,
@@ -117,4 +164,23 @@ export const addMessageAndGetResponse = (
   session.messages.push(userMessage, systemResponse);
   
   return { userMessage, systemResponse, session };
+};
+
+// Search through chat sessions (for admin purposes)
+export const searchChatSessions = (query: string): ChatSession[] => {
+  if (!query.trim()) return [];
+  
+  const lowerQuery = query.toLowerCase();
+  
+  return Object.values(chatSessions).filter(session => {
+    // Search in package ID
+    if (session.packageId?.toLowerCase().includes(lowerQuery)) {
+      return true;
+    }
+    
+    // Search in messages
+    return session.messages.some(message => 
+      message.content.toLowerCase().includes(lowerQuery)
+    );
+  });
 };

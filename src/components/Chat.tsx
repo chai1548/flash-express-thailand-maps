@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from "react";
-import { MessageCircle, Send } from "lucide-react";
+import { MessageCircle, Send, X } from "lucide-react";
 import { 
   Drawer, 
   DrawerClose, 
@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { Message, ChatSession, getChatSession, addMessageAndGetResponse } from "@/lib/chat";
 import { useToast } from "@/hooks/use-toast";
@@ -29,6 +28,14 @@ const Chat = ({ packageId, className }: ChatProps) => {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  // Suggested quick responses
+  const quickResponses = [
+    "Where is my package?",
+    "My package is delayed",
+    "How do I return an item?",
+    "Need help with tracking"
+  ];
 
   // Initialize chat session
   useEffect(() => {
@@ -70,6 +77,13 @@ const Chat = ({ packageId, className }: ChatProps) => {
     }
   };
 
+  const sendQuickResponse = (response: string) => {
+    setMessage(response);
+    setTimeout(() => {
+      handleSendMessage(new Event('submit') as unknown as React.FormEvent);
+    }, 100);
+  };
+
   const formatMessageTime = (timestamp: string) => {
     return new Date(timestamp).toLocaleTimeString([], { 
       hour: '2-digit', 
@@ -89,12 +103,19 @@ const Chat = ({ packageId, className }: ChatProps) => {
         </Button>
       </DrawerTrigger>
       <DrawerContent className="h-[85vh] flex flex-col">
-        <DrawerHeader>
-          <DrawerTitle className="flex items-center gap-2">
-            <MessageCircle className="h-5 w-5 text-flash-secondary" />
-            Flash Express Support Chat
-            {packageId && <span className="text-sm text-gray-500">({packageId})</span>}
-          </DrawerTitle>
+        <DrawerHeader className="border-b pb-2">
+          <div className="flex justify-between items-center">
+            <DrawerTitle className="flex items-center gap-2">
+              <MessageCircle className="h-5 w-5 text-flash-secondary" />
+              Flash Express Support Chat
+              {packageId && <span className="text-sm text-gray-500">({packageId})</span>}
+            </DrawerTitle>
+            <DrawerClose asChild>
+              <Button variant="ghost" size="sm">
+                <X className="h-4 w-4" />
+              </Button>
+            </DrawerClose>
+          </div>
         </DrawerHeader>
         
         <div className="flex-1 px-4 overflow-y-auto mb-2">
@@ -129,7 +150,23 @@ const Chat = ({ packageId, className }: ChatProps) => {
           <div ref={messagesEndRef} />
         </div>
         
-        <DrawerFooter>
+        {/* Quick response buttons */}
+        <div className="px-4 pt-2">
+          <div className="flex flex-wrap gap-2 mb-3">
+            {quickResponses.map((response, index) => (
+              <button
+                key={index}
+                onClick={() => sendQuickResponse(response)}
+                className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-800 py-1 px-2 rounded-full transition-colors"
+                disabled={isTyping}
+              >
+                {response}
+              </button>
+            ))}
+          </div>
+        </div>
+        
+        <DrawerFooter className="border-t pt-2">
           <form onSubmit={handleSendMessage} className="flex space-x-2">
             <Input
               value={message}

@@ -8,7 +8,9 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { getCurrentUser, logout } from "@/lib/auth";
 import ImageAdUploader from "@/components/ImageAdUploader";
-import { FileCheck, Filter } from "lucide-react";
+import { FileCheck, Filter, MessageCircle, Users } from "lucide-react";
+import UserManager from "@/components/admin/UserManager";
+import ChatManager from "@/components/admin/ChatManager";
 
 // Define the advertisement type
 interface Advertisement {
@@ -23,6 +25,7 @@ const AdminDashboard = () => {
   // Get current user information
   const user = getCurrentUser();
   const [advertisements, setAdvertisements] = useState<Advertisement[]>([]);
+  const [activeTab, setActiveTab] = useState("overview");
   
   useEffect(() => {
     if (user?.role !== "admin") {
@@ -84,14 +87,14 @@ const AdminDashboard = () => {
           <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
           <p className="text-gray-500 mb-6">Manage your Flash Express services</p>
           
-          <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid grid-cols-4 md:grid-cols-6 w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <TabsList className="grid grid-cols-3 md:grid-cols-6 w-full">
               <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="packages">Packages</TabsTrigger>
               <TabsTrigger value="users">Users</TabsTrigger>
+              <TabsTrigger value="chats">Chats</TabsTrigger>
               <TabsTrigger value="advertising">Advertising</TabsTrigger>
+              <TabsTrigger value="packages" className="hidden md:inline-flex">Packages</TabsTrigger>
               <TabsTrigger value="settings" className="hidden md:inline-flex">Settings</TabsTrigger>
-              <TabsTrigger value="reports" className="hidden md:inline-flex">Reports</TabsTrigger>
             </TabsList>
             
             <TabsContent value="overview">
@@ -165,6 +168,82 @@ const AdminDashboard = () => {
                   </CardFooter>
                 </Card>
               </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <MessageCircle className="h-5 w-5 text-blue-500" />
+                      Chat Activity
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold">24</div>
+                    <p className="text-sm text-gray-500">Active chat sessions</p>
+                  </CardContent>
+                  <CardFooter>
+                    <Button 
+                      variant="ghost" 
+                      className="w-full text-blue-500"
+                      onClick={() => setActiveTab("chats")}
+                    >
+                      View Details
+                    </Button>
+                  </CardFooter>
+                </Card>
+                
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Users className="h-5 w-5 text-purple-500" />
+                      User Management
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold">156</div>
+                    <p className="text-sm text-gray-500">Registered users</p>
+                  </CardContent>
+                  <CardFooter>
+                    <Button 
+                      variant="ghost" 
+                      className="w-full text-purple-500"
+                      onClick={() => setActiveTab("users")}
+                    >
+                      Manage Users
+                    </Button>
+                  </CardFooter>
+                </Card>
+                
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <FileCheck className="h-5 w-5 text-green-500" />
+                      Content Management
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold">{advertisements.length}</div>
+                    <p className="text-sm text-gray-500">Active advertisements</p>
+                  </CardContent>
+                  <CardFooter>
+                    <Button 
+                      variant="ghost" 
+                      className="w-full text-green-500"
+                      onClick={() => setActiveTab("advertising")}
+                    >
+                      Manage Content
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="users">
+              <UserManager />
+            </TabsContent>
+            
+            <TabsContent value="chats">
+              <ChatManager />
             </TabsContent>
             
             <TabsContent value="advertising" className="space-y-6">
@@ -274,21 +353,6 @@ const AdminDashboard = () => {
               </Card>
             </TabsContent>
             
-            <TabsContent value="users">
-              <Card>
-                <CardHeader>
-                  <CardTitle>User Management</CardTitle>
-                  <CardDescription>Manage user accounts and permissions</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-500">
-                    This section would display a table of users with options to edit permissions,
-                    reset passwords, and manage user accounts.
-                  </p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
             <TabsContent value="settings">
               <Card>
                 <CardHeader>
@@ -299,21 +363,6 @@ const AdminDashboard = () => {
                   <p className="text-gray-500">
                     This section would provide options to configure various system settings
                     such as email notifications, API integrations, and more.
-                  </p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="reports">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Reports & Analytics</CardTitle>
-                  <CardDescription>View system reports and analytics</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-500">
-                    This section would display various reports and analytics graphs
-                    showing system performance, delivery metrics, and more.
                   </p>
                 </CardContent>
               </Card>
