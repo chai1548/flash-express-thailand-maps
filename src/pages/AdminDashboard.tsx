@@ -1,194 +1,217 @@
 
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Package, getPackages, updatePackageStatus } from "@/lib/tracking";
-import { User, getUsers, isAdmin } from "@/lib/auth";
-import { Package as PackageIcon, Users, Settings } from "lucide-react";
-import PackageCard from "@/components/PackageCard";
+import { getCurrentUser, logout } from "@/lib/auth";
+import ImageAdUploader from "@/components/ImageAdUploader";
 
 const AdminDashboard = () => {
-  const navigate = useNavigate();
-  const [packages, setPackages] = useState<Package[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
-  const [activeTab, setActiveTab] = useState<'packages' | 'users'>('packages');
+  // Get current user information
+  const user = getCurrentUser();
   
   useEffect(() => {
-    // Verify user is admin
-    if (!isAdmin()) {
-      toast.error("Unauthorized access");
-      navigate("/dashboard");
-      return;
+    if (user?.role !== "admin") {
+      toast.error("Admin access required");
     }
     
-    // Load data
-    setPackages(getPackages());
-    setUsers(getUsers());
-  }, [navigate]);
-
-  const handleUpdateStatus = (trackingNumber: string, newStatus: Package['status']) => {
-    updatePackageStatus(trackingNumber, newStatus, 'System');
-    setPackages(getPackages());
-    toast.success(`Package status updated to ${newStatus}`);
-  };
-
+    // Welcome message
+    toast.success(`Welcome, ${user?.name || "Admin"}!`);
+  }, []);
+  
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
       
-      <main className="flex-grow bg-gray-50 py-8">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl md:text-3xl font-bold">Admin Dashboard</h1>
-            <Button 
-              variant="outline"
-              onClick={() => navigate("/dashboard")}
-            >
-              Switch to User View
-            </Button>
-          </div>
+      <main className="flex-grow bg-gray-50 py-10 px-4">
+        <div className="container mx-auto">
+          <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
+          <p className="text-gray-500 mb-6">Manage your Flash Express services</p>
           
-          <div className="flex flex-col md:flex-row gap-4 mb-8">
-            <Card className="w-full md:w-1/3">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="bg-flash-light p-3 rounded-full">
-                    <PackageIcon size={24} className="text-flash-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold">Total Packages</h3>
-                    <p className="text-3xl font-bold">{packages.length}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          <Tabs defaultValue="overview" className="space-y-6">
+            <TabsList className="grid grid-cols-4 md:grid-cols-6 w-full">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="packages">Packages</TabsTrigger>
+              <TabsTrigger value="users">Users</TabsTrigger>
+              <TabsTrigger value="advertising">Advertising</TabsTrigger>
+              <TabsTrigger value="settings" className="hidden md:inline-flex">Settings</TabsTrigger>
+              <TabsTrigger value="reports" className="hidden md:inline-flex">Reports</TabsTrigger>
+            </TabsList>
             
-            <Card className="w-full md:w-1/3">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="bg-flash-light p-3 rounded-full">
-                    <Users size={24} className="text-flash-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold">Total Users</h3>
-                    <p className="text-3xl font-bold">{users.length}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="w-full md:w-1/3">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="bg-flash-light p-3 rounded-full">
-                    <Settings size={24} className="text-flash-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold">System Status</h3>
-                    <p className="text-lg font-medium text-green-500">Online</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          
-          <Card>
-            <CardHeader>
-              <div className="flex space-x-4">
-                <Button
-                  variant={activeTab === 'packages' ? 'default' : 'outline'}
-                  onClick={() => setActiveTab('packages')}
-                  className={activeTab === 'packages' ? 'bg-flash-primary' : ''}
-                >
-                  <PackageIcon size={18} className="mr-2" />
-                  Manage Packages
-                </Button>
-                <Button
-                  variant={activeTab === 'users' ? 'default' : 'outline'}
-                  onClick={() => setActiveTab('users')}
-                  className={activeTab === 'users' ? 'bg-flash-primary' : ''}
-                >
-                  <Users size={18} className="mr-2" />
-                  Manage Users
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {activeTab === 'packages' ? (
-                <div>
-                  <CardTitle className="mb-4">All Packages</CardTitle>
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {packages.map(pkg => (
-                      <div key={pkg.id} className="relative">
-                        <PackageCard 
-                          packageData={pkg} 
-                          onClick={() => navigate(`/track?number=${pkg.trackingNumber}`)}
-                        />
-                        <div className="mt-2 flex gap-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="flex-1"
-                            onClick={() => handleUpdateStatus(pkg.trackingNumber, 'pending')}
-                          >
-                            Mark Pending
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="flex-1"
-                            onClick={() => handleUpdateStatus(pkg.trackingNumber, 'in-transit')}
-                          >
-                            Mark In Transit
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="flex-1"
-                            onClick={() => handleUpdateStatus(pkg.trackingNumber, 'delivered')}
-                          >
-                            Mark Delivered
-                          </Button>
-                        </div>
+            <TabsContent value="overview">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Admin Information</CardTitle>
+                    <CardDescription>Your account details</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Name:</span>
+                        <span className="font-medium">{user?.name || "Admin User"}</span>
                       </div>
-                    ))}
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Email:</span>
+                        <span className="font-medium">{user?.email || "admin@flashexpress.com"}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Role:</span>
+                        <span className="font-medium">Administrator</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Last Login:</span>
+                        <span className="font-medium">Today</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => {
+                        logout();
+                        window.location.href = "/login";
+                      }}
+                    >
+                      Log Out
+                    </Button>
+                  </CardFooter>
+                </Card>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle>System Status</CardTitle>
+                    <CardDescription>Current system metrics</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Active Users:</span>
+                        <span className="font-medium">274</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Packages in Transit:</span>
+                        <span className="font-medium">1,392</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Pending Deliveries:</span>
+                        <span className="font-medium">438</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">System Status:</span>
+                        <span className="font-medium text-green-500">Operational</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <Button variant="outline" className="w-full">View Detailed Stats</Button>
+                  </CardFooter>
+                </Card>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="advertising" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Advertisement Management</CardTitle>
+                  <CardDescription>
+                    Upload and manage advertisement images shown on the home page carousel
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ImageAdUploader />
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle>Current Advertisements</CardTitle>
+                  <CardDescription>
+                    View and manage existing advertisements
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {/* This would typically fetch from storage/backend */}
+                    <p>
+                      To view and manage your existing advertisements, go to the home page to see how they appear in the carousel.
+                      Newly uploaded advertisements will appear in the carousel after refresh.
+                    </p>
+                    <Button 
+                      variant="outline"
+                      onClick={() => window.open("/", "_blank")}
+                    >
+                      View Home Page
+                    </Button>
                   </div>
-                </div>
-              ) : (
-                <div>
-                  <CardTitle className="mb-4">All Users</CardTitle>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="p-3">Name</th>
-                          <th className="p-3">Email</th>
-                          <th className="p-3">Role</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {users.map(user => (
-                          <tr key={user.id} className="border-b hover:bg-gray-50">
-                            <td className="p-3">{user.name}</td>
-                            <td className="p-3">{user.email}</td>
-                            <td className="p-3">
-                              <span className={`px-2 py-1 rounded-full text-xs ${user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
-                                {user.role}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="packages">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Package Management</CardTitle>
+                  <CardDescription>View and manage all packages in the system</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-500">
+                    This section would display a table of packages with filtering and sorting options.
+                    Package management functionality would be implemented in a real application.
+                  </p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="users">
+              <Card>
+                <CardHeader>
+                  <CardTitle>User Management</CardTitle>
+                  <CardDescription>Manage user accounts and permissions</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-500">
+                    This section would display a table of users with options to edit permissions,
+                    reset passwords, and manage user accounts.
+                  </p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="settings">
+              <Card>
+                <CardHeader>
+                  <CardTitle>System Settings</CardTitle>
+                  <CardDescription>Configure application settings</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-500">
+                    This section would provide options to configure various system settings
+                    such as email notifications, API integrations, and more.
+                  </p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="reports">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Reports & Analytics</CardTitle>
+                  <CardDescription>View system reports and analytics</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-500">
+                    This section would display various reports and analytics graphs
+                    showing system performance, delivery metrics, and more.
+                  </p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
       

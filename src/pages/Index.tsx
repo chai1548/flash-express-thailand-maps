@@ -1,31 +1,82 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, Package, MapPin, QrCode, Truck, LayoutTemplate, FileText } from "lucide-react";
+import { Search, Package, QrCode, Truck, FileText } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { initializePackages } from "@/lib/tracking";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
+// Define the advertisement type
+interface Advertisement {
+  id: string;
+  title: string;
+  description: string;
+  imageUrl: string;
+}
+
 const Index = () => {
   const navigate = useNavigate();
+  const [advertisements, setAdvertisements] = useState<Advertisement[]>([]);
   
   // Initialize sample package data when app launches
   useEffect(() => {
     initializePackages();
   }, []);
 
-  // Advertisement data
-  const adImages = [
-    "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=800&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=800&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=500&fit=crop"
-  ];
+  // Load advertisements from localStorage or use default ones
+  useEffect(() => {
+    const storedAds = localStorage.getItem("adImages");
+    if (storedAds) {
+      try {
+        const parsedAds = JSON.parse(storedAds);
+        if (Array.isArray(parsedAds) && parsedAds.length > 0) {
+          setAdvertisements(parsedAds);
+          return;
+        }
+      } catch (error) {
+        console.error("Failed to parse stored ads:", error);
+      }
+    }
+    
+    // Default advertisement data if none found in storage
+    const defaultAds = [
+      {
+        id: "1",
+        title: "Flash Express Service 1",
+        description: "Fast and reliable delivery solutions for all your shipping needs",
+        imageUrl: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=800&h=500&fit=crop"
+      },
+      {
+        id: "2",
+        title: "Flash Express Service 2",
+        description: "Nationwide coverage with competitive rates",
+        imageUrl: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=800&h=500&fit=crop"
+      },
+      {
+        id: "3",
+        title: "Flash Express Service 3",
+        description: "Secure packaging and handling for delicate items",
+        imageUrl: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&h=500&fit=crop"
+      },
+      {
+        id: "4",
+        title: "Flash Express Service 4",
+        description: "Track your packages in real-time with our mobile app",
+        imageUrl: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&h=500&fit=crop"
+      },
+      {
+        id: "5",
+        title: "Flash Express Service 5",
+        description: "Business solutions for e-commerce and retail partners",
+        imageUrl: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=500&fit=crop"
+      }
+    ];
+    setAdvertisements(defaultAds);
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -96,17 +147,17 @@ const Index = () => {
                 <CardContent className="p-0">
                   <Carousel className="w-full">
                     <CarouselContent>
-                      {adImages.map((src, index) => (
-                        <CarouselItem key={index}>
+                      {advertisements.map((ad) => (
+                        <CarouselItem key={ad.id}>
                           <div className="p-1 relative">
                             <img 
-                              src={src} 
-                              alt={`Flash Express Service ${index + 1}`}
+                              src={ad.imageUrl} 
+                              alt={ad.title}
                               className="w-full aspect-video object-cover rounded-md"
                             />
                             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-white rounded-b-md">
-                              <h3 className="font-bold">Flash Express Service {index + 1}</h3>
-                              <p className="text-sm">Fast and reliable delivery solutions for all your shipping needs</p>
+                              <h3 className="font-bold">{ad.title}</h3>
+                              <p className="text-sm">{ad.description}</p>
                             </div>
                           </div>
                         </CarouselItem>
