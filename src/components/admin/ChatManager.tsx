@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { 
   Card, 
@@ -35,6 +34,7 @@ import {
   deleteChatSession, 
   searchChatSessions 
 } from "@/lib/chat";
+import { cn } from "@/lib/utils";
 
 const ChatManager = () => {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
